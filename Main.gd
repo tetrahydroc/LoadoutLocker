@@ -34,7 +34,6 @@ func _ready():
 	print("Loadout Locker: Loaded")
 
 func _process(_delta):
-	# Auto-close locker if inventory is closed
 	if _isOpen and !gameData.interface:
 		_close_ui()
 
@@ -280,8 +279,8 @@ func _create_ui(interface):
 
 	_make_button("Store Equip", _on_store_pressed, btnRow, 110)
 	_make_button("Equip", _on_equip_pressed, btnRow, 70)
-	_make_button("Clear", _on_clear_pressed, btnRow, 60)
-	_make_button("Delete", _on_delete_pressed, btnRow, 60)
+	_make_button("Delete", _on_delete_pressed, btnRow, 70)
+	_make_button("Close", _close_ui, btnRow, 60)
 
 	# Cash System integration (optional)
 	var cashSystem = _get_cash_system()
@@ -304,14 +303,6 @@ func _create_ui(interface):
 		_buyButton.add_theme_font_size_override("font_size", 11)
 		_buyButton.pressed.connect(_on_buy_pressed)
 		cashRow.add_child(_buyButton)
-
-	var bottomRow = HBoxContainer.new()
-	bottomRow.add_theme_constant_override("separation", 4)
-	bottomRow.alignment = BoxContainer.ALIGNMENT_CENTER
-	_vbox.add_child(bottomRow)
-
-	_make_button("Add Loadout", _on_add_pressed, bottomRow, 110)
-	_make_button("Close", _close_ui, bottomRow, 60)
 
 	# Resize handle (bottom-right corner)
 	var resizeRow = HBoxContainer.new()
@@ -355,6 +346,14 @@ func _rebuild_tabs():
 		return
 	for child in _tabContainer.get_children():
 		child.queue_free()
+
+	# Add "+" button first
+	var addBtn = Button.new()
+	addBtn.text = "+"
+	addBtn.custom_minimum_size = Vector2(28, 28)
+	addBtn.add_theme_font_size_override("font_size", 14)
+	addBtn.pressed.connect(_on_add_pressed)
+	_tabContainer.add_child(addBtn)
 
 	for i in _loadoutSave.loadoutNames.size():
 		var tab = Button.new()

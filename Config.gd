@@ -9,7 +9,7 @@ const FILE_PATH = "user://MCM/LoadoutLocker"
 const MOD_ID = "loadout-locker"
 
 func _ready() -> void:
-	config.set_value("Keycode", "loadoutLockerKey", {
+	config.set_value("Keycode", "ll_openKey", {
 		"name" = "Open Loadout Locker",
 		"tooltip" = "Key to open the loadout locker (while inventory is open in a shelter)",
 		"default" = KEY_F9,
@@ -37,5 +37,5 @@ func _ready() -> void:
 		)
 
 func _on_config_updated(_config: ConfigFile):
-	settings.openKey = _config.get_value("Keycode", "loadoutLockerKey")["value"]
+	settings.openKey = _config.get_value("Keycode", "ll_openKey")["value"]
 	print("Loadout Locker: Keybind updated to " + str(settings.openKey))
