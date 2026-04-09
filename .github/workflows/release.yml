@@ -1,0 +1,63 @@
+name: Build and Release VMZ
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get and bump version if tag exists
+        id: version
+        run: |
+          VERSION=$(grep 'version=' mod.txt | head -1 | cut -d'"' -f2)
+          ORIGINAL=$VERSION
+
+          while git ls-remote --tags origin "refs/tags/v$VERSION" | grep -q .; do
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION"
+            PATCH=$((PATCH + 1))
+            VERSION="$MAJOR.$MINOR.$PATCH"
+          done
+
+          if [ "$VERSION" != "$ORIGINAL" ]; then
+            sed -i "s/version=\"$ORIGINAL\"/version=\"$VERSION\"/" mod.txt
+            git config user.name "github-actions"
+            git config user.email "github-actions@github.com"
+            git add mod.txt
+            git commit -m "Bump version to $VERSION"
+            git push
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build VMZ
+        run: |
+          mkdir -p build
+          cp mod.txt build/mod.txt
+          mkdir -p build/LoadoutLocker
+          cp *.gd *.tres build/LoadoutLocker/ 2>/dev/null || true
+          cd build
+          zip -r ../LoadoutLocker.vmz mod.txt LoadoutLocker/
+
+      - name: Create versioned release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: Loadout Locker v${{ steps.version.outputs.version }}
+          files: LoadoutLocker.vmz
+          generate_release_notes: true
+
+      - name: Update latest release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Loadout Locker (Latest)
+          files: LoadoutLocker.vmz
+          body: "Latest build - v${{ steps.version.outputs.version }}"
+          make_latest: true
