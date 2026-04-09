@@ -6,3 +6,6 @@ version="1.0.0"
 [autoload]
 LoadoutLockerBoot="res://LoadoutLocker/Main.gd"
 LoadoutLockerConfig="res://LoadoutLocker/Config.gd"
+
+[updates]
+modworkshop=55958
