@@ -108,10 +108,14 @@ func _load_save():
 				save.loadoutSlots.append(slots)
 			return save
 
-	# Try legacy .tres format
+	# Migrate from legacy .tres format
 	if FileAccess.file_exists(LEGACY_SAVE_PATH):
 		var save = load(LEGACY_SAVE_PATH)
 		if save and "loadoutNames" in save:
+			_loadoutSave = save
+			_save_data()
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_SAVE_PATH))
+			print("Loadout Locker: Migrated save to .cfg format")
 			return save
 
 	var save = _SaveScript.new()

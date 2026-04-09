@@ -53,7 +53,12 @@ jobs:
           files: LoadoutLocker.vmz
           generate_release_notes: true
 
-      - name: Update latest release
+      - name: Delete existing latest release
+        run: gh release delete latest --yes --cleanup-tag || true
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Create latest release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest
