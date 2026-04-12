@@ -1,7 +1,7 @@
 [mod]
 name="Loadout Locker"
 id="loadout-locker"
-version="1.0.2"
+version="1.0.3"
 
 [autoload]
 LoadoutLockerBoot="res://LoadoutLocker/Main.gd"
