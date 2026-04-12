@@ -6,8 +6,8 @@ var audioInstance2D = preload("res://Resources/AudioInstance2D.tscn")
 var _SaveScript = preload("res://LoadoutLocker/LoadoutSave.gd")
 var _settings = preload("res://LoadoutLocker/LoadoutSettings.tres")
 
-const SAVE_PATH = "user://Loadouts.cfg"
-const LEGACY_SAVE_PATH = "user://Loadouts.tres"
+const SAVE_PATH = "user://Loadouts.tres"
+const LEGACY_CFG_PATH = "user://Loadouts.cfg"
 
 var _panel: PanelContainer = null
 var _loadoutSave = null
@@ -33,9 +33,19 @@ const MIN_SIZE = Vector2(300, 400)
 func _ready():
 	print("Loadout Locker: Loaded")
 
+var _was_dead = false
+
 func _process(_delta):
 	if _isOpen and !gameData.interface:
 		_close_ui()
+	# Clear in-memory state on permadeath
+	if gameData.isDead and !_was_dead:
+		_was_dead = true
+		if gameData.permadeath:
+			_loadoutSave = null
+			print("Loadout Locker: Cleared on permadeath")
+	elif !gameData.isDead:
+		_was_dead = false
 
 func _input(event):
 	if event is InputEventKey and event.pressed and !event.echo:
@@ -108,15 +118,14 @@ func _load_save():
 				save.loadoutSlots.append(slots)
 			return save
 
-	# Migrate from legacy .tres format
-	if FileAccess.file_exists(LEGACY_SAVE_PATH):
-		var save = load(LEGACY_SAVE_PATH)
-		if save and "loadoutNames" in save:
-			_loadoutSave = save
-			_save_data()
-			DirAccess.remove_absolute(ProjectSettings.globalize_path(LEGACY_SAVE_PATH))
-			print("Loadout Locker: Migrated save to .cfg format")
-			return save
+	# Migrate from old .cfg path (same format, just rename)
+	if FileAccess.file_exists(LEGACY_CFG_PATH):
+		var dir = DirAccess.open("user://")
+		if dir:
+			dir.rename("Loadouts.cfg", "Loadouts.tres")
+			print("Loadout Locker: Migrated Loadouts.cfg to Loadouts.tres")
+			# Now load from the new path
+			return _load_save()
 
 	var save = _SaveScript.new()
 	return save
@@ -659,7 +668,6 @@ func _on_buy_pressed():
 	interface.UpdateStats(true)
 	_play_click()
 	gameData.isOccupied = true
-	print("Loadout Locker: Bought loadout for €" + str(cost))
 
 func _get_cash_system():
 	# v2.5+ registers via Engine.set_meta
